@@ -1,14 +1,11 @@
 package main
 
 import (
-	// "fmt"
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
 	"strconv"
-
-	// "slices"
-	// "strconv"
 	"strings"
 )
 
@@ -21,19 +18,22 @@ func parseFile(filename string) []string {
 	return strings.Split(string(data), "\r\n")
 }
 
-func part1(banks []string) {
+func solution(banks []string) (int, int64) {
 
-	sumPart1 := 0
+	part1 := 0
+	var part2 int64 = 0
 	for _, v := range banks {
-		sumPart1 += calculateJolts1(v)
+
+		part1 += calculateJolts1(v)
+		part2 += calculateJolts2(v)
 	}
 
-	println("Part 1 :", sumPart1)
+	return part1, part2
 }
 
 func calculateJolts1(bank string) int {
 
-	// Conver the string into integers
+	// Convert the string into integers
 	numbers := make([]int, len(bank))
 	for i, digit := range bank {
 		numbers[i] = int(digit - '0')
@@ -68,8 +68,79 @@ func calculateJolts1(bank string) int {
 	return 0
 }
 
+func calculateJolts2(bank string) int64 {
+	// Conver the string into integers
+	numbers := make([]int, len(bank))
+	for i, digit := range bank {
+		numbers[i] = int(digit - '0')
+	}
+
+	resultNumbers := []int{}
+	var window = 12 // How many digits we need to activate
+
+	maxIndex := findFirstLargestNumberVol(numbers, window)
+	resultNumbers = append(resultNumbers, numbers[maxIndex])
+
+	var startingIndex = maxIndex + 1 // We start right after the largest number
+	var digitsToadd = window - 1     // The first one was already found
+
+	for digitsToadd > 0 {
+
+		// Seek right for the next largest number
+		max := 0
+		maxIndex = -1
+
+		for j := startingIndex; j < len(numbers)-digitsToadd+1; j++ {
+
+			if numbers[j] > max {
+				max = numbers[j]
+				maxIndex = j
+			}
+		}
+
+		digitsToadd -= 1
+		startingIndex = maxIndex + 1
+		resultNumbers = append(resultNumbers, max)
+	}
+
+	resultString := ""
+
+	for _, v := range resultNumbers {
+		resultString += strconv.Itoa(v)
+	}
+
+	result, _ := strconv.ParseInt(resultString, 10, 64)
+	return result
+}
+
+func findFirstLargestNumberVol(numbers []int, window int) int {
+
+	// 15 numbers, window = 12 numbers.
+	// [0, 1, 2, 3 || 4]
+	// 15 - 12 = 3
+	// Then since slice range is non-inclusive we add one 3 + 1 = 4
+	firstNumberRange := len(numbers) - window + 1
+
+	var maxValue = 0
+	var maxIndex = -1
+
+	for i := 0; i < firstNumberRange; i++ {
+
+		if numbers[i] > maxValue {
+			maxValue = numbers[i]
+			maxIndex = i
+		}
+	}
+
+	return maxIndex
+
+}
+
 func main() {
 
 	banks := parseFile("03.txt")
-	part1(banks)
+	sumPart1, sumPart2 := solution(banks)
+
+	fmt.Println("Part 1 :", sumPart1)
+	fmt.Println("Part 2 :", sumPart2)
 }
