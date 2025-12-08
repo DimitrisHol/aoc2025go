@@ -73,7 +73,7 @@ func parseFile(filename string) []string {
 	return strings.Split(string(data), "\r\n")
 }
 
-func part1(data []string) {
+func part1(data []string) int {
 
 	positions := make([]position, len(data))
 
@@ -152,14 +152,92 @@ func part1(data []string) {
 	})
 
 	product := sizes[0] * sizes[1] * sizes[2]
-	fmt.Println(product)
+	return product
+}
 
+func part2(data []string) int {
+
+	positions := make([]position, len(data))
+
+	for index, v := range data {
+
+		coords := strings.Split(v, ",")
+
+		x, _ := strconv.Atoi(coords[0])
+		y, _ := strconv.Atoi(coords[1])
+		z, _ := strconv.Atoi(coords[2])
+
+		pos := position{index: index, x: x, y: y, z: z}
+		positions[index] = pos
+
+	}
+
+	// for 20 elements, we need 190 distances n * (n-1) / 2
+	// for 1000 elements we need 499.500 distances
+	distancesLength := len(positions) * (len(positions) - 1) / 2
+	distances := make([]distance, distancesLength)
+
+	distanceIndex := 0
+
+	for i := 0; i < len(positions); i++ {
+
+		for j := i + 1; j < len(positions); j++ {
+
+			pos1 := positions[i]
+			pos2 := positions[j]
+			d := calculateDistance(positions[i], positions[j])
+
+			dist := distance{pos1: pos1, pos2: pos2, distance: d}
+			distances[distanceIndex] = dist
+			distanceIndex += 1
+		}
+	}
+
+	sort.Slice(distances, func(i, j int) bool {
+		return distances[i].distance < distances[j].distance
+	})
+
+	ds := DisjoinSet{parent: make(map[int]int), elements: make(map[int]position)}
+
+	// First create sets with all the individual elements
+	for i := 0; i < len(positions); i++ {
+		ds.makeSet(positions[i])
+	}
+
+	// Union until all representatives are the same
+	// which means that we're all under the same group
+	for i := 0; i < len(distances); i++ {
+
+		pos1 := distances[i].pos1
+		pos2 := distances[i].pos2
+
+		ds.Union(pos1.index, pos2.index)
+
+		representative := ds.find(0)
+		var allRepresentativesSame bool = true
+
+		for j := 1; j < len(positions); j++ {
+
+			if representative != ds.find(j) {
+				allRepresentativesSame = false
+				break
+			}
+		}
+
+		if allRepresentativesSame {
+			return pos1.x * pos2.x
+		}
+	}
+
+	fmt.Println("Something went wrong")
+	return 0
 }
 
 func main() {
 
 	data := parseFile("08.txt")
-	part1(data)
+	fmt.Println(part1(data))
+	fmt.Println(part2(data))
 }
 
 func calculateDistance(box1 position, box2 position) float64 {
