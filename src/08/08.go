@@ -66,8 +66,8 @@ func (ds DisjoinSet) Union(x int, y int) DisjoinSet {
 
 func parseFile(filename string) []string {
 	currentPath, _ := os.Getwd()
-	testPath := filepath.Join(currentPath, "..", "..", "input", "test", filename)
-	// testPath := filepath.Join(currentPath, "..", "..", "input", filename)
+	// testPath := filepath.Join(currentPath, "..", "..", "input", "test", filename)
+	testPath := filepath.Join(currentPath, "..", "..", "input", filename)
 
 	data, _ := os.ReadFile(testPath)
 	return strings.Split(string(data), "\r\n")
@@ -114,10 +114,10 @@ func part1(data []string) {
 		return distances[i].distance < distances[j].distance
 	})
 
-	for _, v := range distances {
-		fmt.Println(v)
-	}
-	fmt.Println(len(distances))
+	// for _, v := range distances {
+	// 	fmt.Println(v)
+	// }
+	// fmt.Println(len(distances))
 
 	ds := DisjoinSet{parent: make(map[int]int), elements: make(map[int]position)}
 
@@ -127,7 +127,7 @@ func part1(data []string) {
 		ds.makeSet(positions[i])
 	}
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 1000; i++ {
 
 		pos1 := distances[i].pos1
 		pos2 := distances[i].pos2
