@@ -91,6 +91,7 @@ func part1(data []string) {
 	}
 
 	// for 20 elements, we need 190 distances n * (n-1) / 2
+	// for 1000 elements we need 499.500 distances
 	distancesLength := len(positions) * (len(positions) - 1) / 2
 	distances := make([]distance, distancesLength)
 
@@ -114,20 +115,15 @@ func part1(data []string) {
 		return distances[i].distance < distances[j].distance
 	})
 
-	// for _, v := range distances {
-	// 	fmt.Println(v)
-	// }
-	// fmt.Println(len(distances))
-
 	ds := DisjoinSet{parent: make(map[int]int), elements: make(map[int]position)}
 
 	// First create sets with all the individual elements
-
 	for i := 0; i < len(positions); i++ {
 		ds.makeSet(positions[i])
 	}
 
-	for i := 0; i < 1000; i++ {
+	// Union the first 1000 closest boxes
+	for i := 0; i < 1000; i++ { // 10 for the example
 
 		pos1 := distances[i].pos1
 		pos2 := distances[i].pos2
@@ -137,12 +133,15 @@ func part1(data []string) {
 
 	circuitSizes := make(map[int]int)
 
-	// Loop through the positions
+	// Loop through the positions, and find the representative for each position (recursively)
+	// and simply count how many times each representative is present
+	// representative = group leader, which means they are part of that group !
 	for i := 0; i < len(positions); i++ {
 		representative := ds.find(i)
 		circuitSizes[representative] += 1
 	}
 
+	// Transform the map into list, and sort it. We only need the first 3 elements
 	var sizes []int
 	for _, size := range circuitSizes {
 		sizes = append(sizes, size)
