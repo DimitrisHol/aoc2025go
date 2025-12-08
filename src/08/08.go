@@ -11,15 +11,57 @@ import (
 )
 
 type position struct {
-	x int
-	y int
-	z int
+	index int
+	x     int
+	y     int
+	z     int
 }
 
 type distance struct {
 	pos1     position
 	pos2     position
 	distance float64
+}
+
+type DisjoinSet struct {
+	parent   map[int]int
+	elements map[int]position
+}
+
+// Create a new set (a new graph)
+func (ds DisjoinSet) makeSet(pos position) DisjoinSet {
+
+	if _, exists := ds.parent[pos.index]; !exists {
+		ds.parent[pos.index] = pos.index // the first element is its own parent
+		ds.elements[pos.index] = pos
+	}
+	return ds
+}
+
+// Find the representative of the index (of the position)
+func (ds DisjoinSet) find(index int) int {
+
+	// We've reached the base case (element is it's own parent)
+	if ds.parent[index] == index {
+		return index
+	}
+
+	// TODO : OPTIMIZATION you can flatten the tree as you go
+	// E -> D -> C -> B -> A
+	// so the next time you find(D) go directly to A instead of moving one step
+
+	return ds.find(ds.parent[index])
+}
+
+func (ds DisjoinSet) Union(x int, y int) DisjoinSet {
+
+	rootX := ds.find(x)
+	rootY := ds.find(y)
+
+	if rootX != rootY {
+		ds.parent[rootX] = rootY
+	}
+	return ds
 }
 
 func parseFile(filename string) []string {
@@ -43,7 +85,7 @@ func part1(data []string) {
 		y, _ := strconv.Atoi(coords[1])
 		z, _ := strconv.Atoi(coords[2])
 
-		pos := position{x: x, y: y, z: z}
+		pos := position{index: index, x: x, y: y, z: z}
 		positions[index] = pos
 
 	}
@@ -72,7 +114,46 @@ func part1(data []string) {
 		return distances[i].distance < distances[j].distance
 	})
 
+	for _, v := range distances {
+		fmt.Println(v)
+	}
 	fmt.Println(len(distances))
+
+	ds := DisjoinSet{parent: make(map[int]int), elements: make(map[int]position)}
+
+	// First create sets with all the individual elements
+
+	for i := 0; i < len(positions); i++ {
+		ds.makeSet(positions[i])
+	}
+
+	for i := 0; i < 10; i++ {
+
+		pos1 := distances[i].pos1
+		pos2 := distances[i].pos2
+
+		ds.Union(pos1.index, pos2.index)
+	}
+
+	circuitSizes := make(map[int]int)
+
+	// Loop through the positions
+	for i := 0; i < len(positions); i++ {
+		representative := ds.find(i)
+		circuitSizes[representative] += 1
+	}
+
+	var sizes []int
+	for _, size := range circuitSizes {
+		sizes = append(sizes, size)
+	}
+
+	sort.Slice(sizes, func(i, j int) bool {
+		return sizes[i] > sizes[j]
+	})
+
+	product := sizes[0] * sizes[1] * sizes[2]
+	fmt.Println(product)
 
 }
 
