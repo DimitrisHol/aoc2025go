@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type tile struct {
@@ -117,34 +118,67 @@ func part1(data []string) (rectangle, rectangle) {
 		}
 	}
 
-	// Loop through all the opposite side red tile rectangles, sorted by max area
-	totalCandidates := len(candidates)
-	for index, rectangle := range candidates {
+	// Use multiple workers to check candidates in parallel
+	numWorkers := 20 // Adjust based on your CPU cores
+	jobs := make(chan int, numWorkers)
+	results := make(chan int, numWorkers) // Channel to send valid candidate indices
 
-		if index%10 == 0 {
-			fmt.Printf("Checked %d/%d candidates (%.1f%%)...\n", index, totalCandidates, float64(index)*100/float64(totalCandidates))
-		}
+	var wg sync.WaitGroup
 
-		chosenOne := true
+	for w := 0; w < numWorkers; w++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for idx := range jobs {
+				rectangle := candidates[idx]
+				valid := true
 
-		// Loop through all the rectangle edge tiles, to check if they are inside the polygon
-		for _, edgeTile := range getRectangleEdges(rectangle) {
+				for _, edgeTile := range getRectangleEdges(rectangle) {
+					if edgeTiles[edgeTile] {
+						continue
+					}
 
-			// Easily check if part of the polygon border
-			if edgeTiles[edgeTile] {
-				continue
+					if !isInsidePolygon(edgeTile, tiles) {
+						valid = false
+						break
+					}
+				}
+
+				if valid {
+					results <- idx // Send the index of valid candidate
+					return         // Stop this worker
+				}
 			}
+		}()
+	}
 
-			if !isInsidePolygon(edgeTile, tiles) {
-				chosenOne = false
-				break
+	// Send jobs to workers
+	go func() {
+		for i := 0; i < len(candidates); i++ {
+			if i%100 == 0 {
+				fmt.Printf("Queued %d/%d candidates...\n", i, len(candidates))
 			}
+			jobs <- i
 		}
+		close(jobs)
+	}()
 
-		if chosenOne {
-			return maxAreaPart1, rectangle
+	// Wait for first result or all workers to finish
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	// Get the first (smallest index = largest area) valid result
+	validIdx := -1
+	for idx := range results {
+		if validIdx == -1 || idx < validIdx {
+			validIdx = idx
 		}
+	}
 
+	if validIdx != -1 {
+		return maxAreaPart1, candidates[validIdx]
 	}
 
 	return maxAreaPart1, rectangle{a: tile{x: 666, y: 666}}
