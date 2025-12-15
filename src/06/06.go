@@ -10,8 +10,8 @@ import (
 
 func parseFile(filename string) []string {
 	currentPath, _ := os.Getwd()
-	testPath := filepath.Join(currentPath, "..", "..", "input", "test", filename)
-	// testPath := filepath.Join(currentPath, "..", "..", "input", filename)
+	// testPath := filepath.Join(currentPath, "..", "..", "input", "test", filename)
+	testPath := filepath.Join(currentPath, "..", "..", "input", filename)
 
 	data, _ := os.ReadFile(testPath)
 	return strings.Split(string(data), "\r\n")
@@ -73,10 +73,19 @@ func part1(data []string) int {
 	return total
 }
 
-func part222(data []string) int {
+/*
+Modified the input to this because the puzzle is stupid :
+
+123X328X051X640
+045X640X387X230
+006X980X215X314
+*   +   *   +
+*/
+
+func part2(data []string) int {
 
 	numberOfRows := len(data) - 1 // 0 index, last row is operations
-	numberOfCols := len(strings.Fields(data[0]))
+	numberOfCols := len(strings.Split(data[0], "X"))
 
 	operations := make([]string, numberOfCols)
 
@@ -89,10 +98,11 @@ func part222(data []string) int {
 	for i := 0; i <= numberOfRows; i++ {
 
 		// Split multiple whitespaces
-		rowArray := strings.Fields(data[i])
+		rowArray := strings.Split(data[i], "X")
 
 		// Last row operations
 		if i == numberOfRows {
+			rowArray := strings.Fields(data[i])
 			copy(operations, rowArray)
 			break
 		}
@@ -116,10 +126,10 @@ func rotateArrayAndCalculate(column []string, operation string) int {
 
 	// fmt.Println(column, operation) // DEBUG
 
-	// Step 1 : Create the new 2D array. Max size of number is 4 digits
-	numbers := make([][]int, 4)
+	// Step 1 : Create the new 2D array. Max size of number is 5 digits
+	numbers := make([][]int, 5)
 	for i := 0; i < len(numbers); i++ {
-		numbers[i] = make([]int, 4)
+		numbers[i] = make([]int, 5)
 	}
 
 	// Step 2 : Split each digit of the integers and put into 2D array :
@@ -178,7 +188,7 @@ func rotateArrayAndCalculate(column []string, operation string) int {
 			continue
 		}
 
-		fmt.Println(rotated[i], intValue, operation)
+		// fmt.Println(rotated[i], intValue, operation)
 		if operation == "*" {
 			total *= intValue
 		} else {
@@ -186,145 +196,16 @@ func rotateArrayAndCalculate(column []string, operation string) int {
 		}
 	}
 
-	fmt.Printf("total: %v\n", total)
+	// fmt.Printf("total: %v\n", total)
 	return total
 
-}
-
-/*
-
-Note to future self, me probably tomororw
-
-You have lots of 2d arrays (each column has a 2d array).
-You basically need a method that gets this 2d array, along with its operation
-Then you need to rotate the 2d array counter clockwise 90'
-and then you can simply do the math. You don't need a new 3d array to do this, I think it's better to loop through
-the columns, and treat each column as a separate 2d array. godspeed
-
-*/
-
-func part22(data []string) int {
-
-	// Step 1 : Parse numbers into a 2d array, and operations to a 1D array.
-	numberOfRows := len(data) - 1
-	numberOfCols := len(strings.Fields(data[0]))
-
-	numbers := make([][]string, numberOfRows)
-	operations := make([]string, numberOfCols)
-
-	for i := 0; i <= numberOfRows; i++ {
-
-		rowArray := strings.Fields(data[i])
-
-		// Last row
-		if i == numberOfRows {
-			copy(operations, rowArray)
-			break
-		}
-
-		// Rest of the rows should create a 2D array
-		fmt.Println(rowArray)
-		numbers[i] = rowArray
-	}
-
-	fmt.Println(numbers)
-	fmt.Println(operations)
-
-	// Create a 3D array to hold the new numbers, init with 0
-	copyNumbers := make([][][]int, numberOfRows)
-	for i := 0; i < numberOfRows; i++ {
-
-		copyNumbers[i] = make([][]int, numberOfCols)
-		for j := 0; j < numberOfCols; j++ {
-			y := make([]int, 4) // Max number ?
-			copyNumbers[i][j] = y
-		}
-	}
-
-	// Loop through the actual numbers and try and populate the copyNumbers array
-	for j := 0; j < numberOfCols; j++ {
-
-		for i := 0; i < numberOfRows; i++ {
-
-			// Convert string to rune array
-			digits := []rune(numbers[i][j])
-
-			// Loop backwards for each element
-			counter := 0
-			for k := len(digits) - 1; k >= 0; k-- {
-
-				integer := int(digits[k] - '0')
-
-				copyNumbers[i+counter][j][k] = integer
-				counter++
-			}
-		}
-
-		for i := 0; i < numberOfRows; i++ {
-			fmt.Println(copyNumbers[i])
-		}
-
-		os.Exit(1)
-	}
-
-	return 0
-
-}
-
-func part2(data []string) int {
-
-	total := 0
-
-	rows := len(data) - 1 // remove one since the last one contains the operations
-	columns := len(strings.Fields(data[0]))
-
-	numbers := make([][]int, rows)
-	operations := make([]string, columns)
-
-	for i, row := range data {
-
-		// Remove the whitespace and split
-		row := strings.Fields(row)
-
-		if i == rows {
-			for j, v := range row {
-				operations[j] = v
-			}
-			break
-		}
-
-		// Create local row numbers
-		rowNumbers := make([]int, columns)
-		for j, v := range row {
-
-			intNumber, _ := strconv.Atoi(v)
-
-			rowNumbers[j] = intNumber
-		}
-
-		numbers[i] = rowNumbers
-
-	}
-
-	for j := 0; j < columns-1; j++ {
-
-		println("new line")
-
-		for i := 0; i < rows; i++ {
-
-			println(numbers[i][j])
-
-		}
-
-	}
-
-	return total
 }
 
 func main() {
 
-	data := parseFile("06.txt")
-	// fmt.Println(part1(data))
-	// fmt.Println(part2(data))
-	fmt.Println(part222(data))
+	data := parseFile("06_v1.txt")
+	fmt.Println(part1(data))
+
+	data2 := parseFile("06_v2.txt")
+	fmt.Println(part2(data2))
 }
