@@ -9,8 +9,8 @@ import (
 
 func parseFile(filename string) []string {
 	currentPath, _ := os.Getwd()
-	testPath := filepath.Join(currentPath, "..", "..", "input", "test", filename)
-	// testPath := filepath.Join(currentPath, "..", "..", "input", filename)
+	// testPath := filepath.Join(currentPath, "..", "..", "input", "test", filename)
+	testPath := filepath.Join(currentPath, "..", "..", "input", filename)
 
 	data, _ := os.ReadFile(testPath)
 	return strings.Split(string(data), "\r\n")
@@ -27,42 +27,47 @@ func part1(data []string) int {
 
 	}
 
-	// Start from "A", with goal : "E"
-	stack := []string{"A"}
-	goal := "E"
+	start := "you"
+	goal := "out"
 
-	visitedNodes := map[string]bool{}
+	stack := [][]string{{start}}
+
+	counter := 0
+
+	// visitedNodes := map[string]bool{}
 	for len(stack) > 0 {
 
 		// Get last object, update the stack
-		top, newStack := pop(stack)
-		stack = newStack
+		path := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
 
-		// Check if we reached the destination
-		if goal == top {
-			fmt.Println("Goal reached", top)
-			break
+		// Get the last node of the path
+		lastNode := path[len(path)-1]
+		if lastNode == goal {
+			fmt.Printf("path: %v\n", path)
+			counter += 1
 		}
 
-		fmt.Println("Top :", top, "newstack", newStack)
-		if visitedNodes[top] {
-			continue
-		}
-		visitedNodes[top] = true
+		for _, nextNode := range adjacencyList[lastNode] {
 
-		for _, nextNode := range adjacencyList[top] {
-			fmt.Printf("nextNode: %v\n", nextNode)
-			stack = push(stack, nextNode)
+			if pathContainsNode(path, nextNode) {
+				continue
+			}
+
+			newPath := append([]string{}, path...)
+			newPath = append(newPath, nextNode)
+
+			stack = append(stack, newPath)
 		}
 
 	}
 
-	return 0
+	return counter
 }
 
 func main() {
 
-	data := parseFile("112.txt")
+	data := parseFile("11.txt")
 	fmt.Println(part1(data))
 }
 
@@ -72,4 +77,14 @@ func push(stack []string, value string) []string {
 
 func pop(stack []string) (string, []string) {
 	return stack[len(stack)-1], stack[:len(stack)-1]
+}
+
+func pathContainsNode(path []string, node string) bool {
+
+	for i := 0; i < len(path); i++ {
+		if path[i] == node {
+			return true
+		}
+	}
+	return false
 }
