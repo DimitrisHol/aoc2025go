@@ -20,6 +20,65 @@ func part1(rows []string) int {
 
 	var numberOfRows = len(rows)
 	var numberOfCols = len(rows[0])
+	grid := makeGrid(rows)
+
+	var requiredAccessSpots = 3
+	var validPaperRolls = 0
+
+	for i := 1; i <= numberOfRows; i++ {
+		for j := 1; j <= numberOfCols; j++ {
+
+			if grid[i][j] == '@' {
+				// We are at a paper roll, check all corners
+				if paperRollCanBeAccessed(grid, requiredAccessSpots, i, j, false) {
+					validPaperRolls += 1
+				}
+			}
+
+		}
+	}
+
+	return validPaperRolls
+}
+
+func part2(rows []string) int {
+
+	var numberOfRows = len(rows)
+	var numberOfCols = len(rows[0])
+	grid := makeGrid(rows)
+
+	var requiredAccessSpots = 3
+	var validPaperRolls = 0
+
+	for i := 0; i < 100; i++ { // Or until no more :)
+
+		for i := 1; i <= numberOfRows; i++ {
+			for j := 1; j <= numberOfCols; j++ {
+
+				if grid[i][j] == '@' {
+					// We are at a paper roll, check all corners
+					if paperRollCanBeAccessed(grid, requiredAccessSpots, i, j, true) {
+						validPaperRolls += 1
+					}
+				}
+
+			}
+		}
+	}
+
+	// Print
+	for i := range grid {
+		fmt.Println(string(grid[i]))
+	}
+
+	return validPaperRolls
+
+}
+
+func makeGrid(data []string) [][]rune {
+
+	var numberOfRows = len(data)
+	var numberOfCols = len(data[0])
 
 	// Make a larger grid 10x10 - > 12x12 with dots
 	grid := make([][]rune, numberOfRows+2)
@@ -33,46 +92,17 @@ func part1(rows []string) int {
 
 	// Replace the inner circle with the actual values
 	for i := 0; i < numberOfRows; i++ {
-		row := []rune(rows[i])
+		row := []rune(data[i])
 		for j := 0; j < numberOfCols; j++ {
 			grid[i+1][j+1] = row[j]
 		}
 	}
 
-	// Print
-	for i := range grid {
-		fmt.Println(string(grid[i]))
-	}
-
-	var requiredAccessSpots = 3
-	var validPaperRolls = 0
-
-	// for i := 0; i < 100000; i++ {
-
-	for i := 1; i <= numberOfRows; i++ {
-		for j := 1; j <= numberOfCols; j++ {
-
-			if grid[i][j] == '@' {
-				// We are at a paper roll, check all corners
-				if paperRollCanBeAccessed(grid, requiredAccessSpots, i, j) {
-					validPaperRolls += 1
-				}
-			}
-
-		}
-	}
-	// }
-
-	// Print
-	for i := range grid {
-		fmt.Println(string(grid[i]))
-	}
-
-	return validPaperRolls
+	return grid
 
 }
 
-func paperRollCanBeAccessed(grid [][]rune, minimumAccessSpots int, i int, j int) bool {
+func paperRollCanBeAccessed(grid [][]rune, minimumAccessSpots int, i int, j int, remove bool) bool {
 
 	var availableSpots = 0
 
@@ -100,9 +130,9 @@ func paperRollCanBeAccessed(grid [][]rune, minimumAccessSpots int, i int, j int)
 		}
 	}
 
-	// if availableSpots <= minimumAccessSpots {
-	// 	grid[i][j] = '.'
-	// }
+	if remove && availableSpots <= minimumAccessSpots {
+		grid[i][j] = '.'
+	}
 
 	return availableSpots <= minimumAccessSpots
 
@@ -111,7 +141,8 @@ func paperRollCanBeAccessed(grid [][]rune, minimumAccessSpots int, i int, j int)
 func main() {
 
 	banks := parseFile("04.txt")
-	var part1 = part1(banks)
+	part1 := part1(banks)
+	part2 := part2(banks)
 
-	fmt.Println(part1)
+	fmt.Println(part1, part2)
 }
