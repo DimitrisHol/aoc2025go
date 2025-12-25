@@ -12,8 +12,8 @@ import (
 
 func parseFile(filename string) []string {
 	currentPath, _ := os.Getwd()
-	testPath := filepath.Join(currentPath, "..", "..", "input", "test", filename)
-	// testPath := filepath.Join(currentPath, "..", "..", "input", filename)
+	// testPath := filepath.Join(currentPath, "..", "..", "input", "test", filename)
+	testPath := filepath.Join(currentPath, "..", "..", "input", filename)
 
 	data, _ := os.ReadFile(testPath)
 	return strings.Split(string(data), "\r\n")
@@ -21,33 +21,29 @@ func parseFile(filename string) []string {
 
 func solve(data []string) (int, int) {
 
-	totalNumberPresses := 0
+	part1 := 0
 	part2 := 0
 
 	for _, v := range data {
 
 		factory := strings.Split(v, " ")
 
-		// indicatorLight := factory[0][1 : len(factory[0])-1] // e.g. .##. (this is the goal)
-		wiringSchematics := factory[1 : len(factory)-1]    // e.g. [(3), (1,3), (2)] etc.
-		joltageRequirements := factory[len(factory)-1:][0] // e.g. {3,5,4,7}
+		indicatorLight := factory[0][1 : len(factory[0])-1] // e.g. .##. (this is the goal)
+		wiringSchematics := factory[1 : len(factory)-1]     // e.g. [(3), (1,3), (2)] etc.
+		joltageRequirements := factory[len(factory)-1:][0]  // e.g. {3,5,4,7}
 
-		fmt.Println(wiringSchematics, joltageRequirements)
-
-		// result := calculatePressesVol2(indicatorLight, wiringSchematics)
+		part1 += calculatePressesVol2(indicatorLight, wiringSchematics)
 		// part2 += BFS(wiringSchematics, joltageRequirements)    // TAKES TOO LONG
 		// part2 += solver(wiringSchematics, joltageRequirements) // THERE IS NO SOLVER AVAILABLE IN GO
 		part2 += dfs(wiringSchematics, joltageRequirements)
 
-		// totalNumberPresses += result
-
 	}
 
-	return totalNumberPresses, part2
+	return part1, part2
 }
 
 func dfs(buttons []string, goals string) int {
-
+	// TODO : Implement DFS with pruning (:
 	return 0
 }
 
